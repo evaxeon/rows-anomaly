@@ -7,7 +7,7 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import IsolationForest
-
+from sklearn.svm import OneClassSVM
 
 np.seterr(divide='ignore', invalid='ignore')
 
@@ -33,7 +33,8 @@ def openAndDump():
 #openAndDump()
 
 
-def isolationForest():
+def isolationForestProc():
+    print("Applying IsolationForest algorithm...")
     with open('dataset2_dict.pickle', 'rb') as handle:
         b = pickle.load(handle)
 
@@ -47,3 +48,22 @@ def isolationForest():
         #print(model)
         #print(scores)
         #print(anomaly)
+
+def oneClassSvmProc():
+    print("Applying OneClassSVM algorithm...")
+    with open('dataset2_dict.pickle', 'rb') as handle:
+        b = pickle.load(handle)
+
+    for key in b.keys():
+        print("Working on key {}".format(key))
+        model = OneClassSVM()
+        model.fit(b[key])
+        anomaly = model.predict(b[key])
+        for an in anomaly:
+            if an == 1:
+                print('Not anomaly!')
+            else:
+                print('Anomaly!')
+
+
+oneClassSvmProc()
