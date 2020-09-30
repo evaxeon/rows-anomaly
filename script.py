@@ -3,6 +3,7 @@
 
 import csv
 import pickle
+import pandas as pd
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,8 +11,6 @@ from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM
 
 np.seterr(divide='ignore', invalid='ignore')
-
-pidDict = {}
 
 def openAndDump():
     with open('dataset2.csv', mode='r') as csv_file:
@@ -30,7 +29,21 @@ def openAndDump():
     with open('dataset2_dict.pickle', 'wb') as handle:
         pickle.dump(pidDict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-#openAndDump()
+def largeOpenAndDump(filename, chunksize, fields):
+    pidDict = {}
+    r = pd.read_csv(filename, chunksize=chunksize, usecols=fields)
+    chunkCounter = 0
+    for chunk in r:
+        print("Working on chunk #{}".format(chunkCounter))
+        chunkCounter += 1
+        for index, row in chunk.iterrows():
+            if int(row[fields[1]]) in pidDict.keys():
+                pidDict[int(row[fields[1]])].append([int(row[fields[0]])])
+            else:
+                pidDict[int(row[fields[1]])] = [ [int(row[fields[0]])] ]
+            #print(row[fields[0]], row[fields[1]])
+    with open('{}_dict_n.pickle'.format(filename), 'wb') as handle:
+        pickle.dump(pidDict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def isolationForestProc():
@@ -66,4 +79,8 @@ def oneClassSvmProc():
                 print('Anomaly!')
 
 
-oneClassSvmProc()
+#oneClassSvmProc()
+chunksize = 1000000
+fields = ['REQTIME', 'PID']
+filename = 'dataset2.csv'
+largeOpenAndDump(filename, chunksize, fields)
